@@ -1,0 +1,29 @@
+{
+	"$schema": "https://orgsdk.ai/schemas/plugin-manifest.v1.json",
+	"name": "browser-cdp",
+	"version": "0.1.0",
+	"description": "Control a remote Chrome browser over CDP with Playwright. Connect to self-hosted Steel, Steel Cloud, or another Chromium CDP endpoint.",
+	"entry": "index.ts",
+	"auth": {
+		"type": "token",
+		"provider": "browser-cdp",
+		"label": "Browser connection credentials (optional)",
+		"hint": "For Steel Cloud or bearer authentication, attach a credential with secret_apiKey. Self-hosted Steel can use authMode none without a credential. Optional secret_headers contains JSON connection headers."
+	},
+	"marketplace": {
+		"displayName": "Browser CDP",
+		"category": "Developer",
+		"tagline": "Use a remote Chrome browser from reusable OrgSDK actions.",
+		"tags": ["browser", "automation", "playwright", "cdp", "steel"],
+		"useCases": [
+			"Automate websites with an existing Steel session",
+			"Extract page content and capture screenshots",
+			"Continue browser workflows across project runs"
+		],
+		"permissionsSummary": "Controls pages in the connected browser's default context, including navigation, form submission, page JavaScript, screenshots and closing selected tabs. Uses that session's cookies and network access. Does not launch or terminate the browser.",
+		"links": {
+			"homepage": "https://orgsdk.ai",
+			"docs": "https://github.com/steel-dev/steel-browser"
+		}
+	}
+}

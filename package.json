@@ -1,0 +1,29 @@
+{
+	"name": "@orgsdk/plugin-browser-cdp",
+	"version": "0.1.0",
+	"description": "Remote Chrome automation over CDP, including self-hosted Steel Browser.",
+	"type": "module",
+	"private": true,
+	"license": "UNLICENSED",
+	"scripts": {
+		"check": "biome check .",
+		"format": "biome check --write .",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test",
+		"test:integration": "bun scripts/integration.ts",
+		"validate": "orgsdk-plugin validate",
+		"package": "TAR_OPTIONS='--mtime=@0 --owner=0 --group=0 --numeric-owner --mode=0644' orgsdk-plugin package",
+		"version-guard": "orgsdk-plugin version-guard",
+		"build": "bun run typecheck && bun run validate && bun run package"
+	},
+	"dependencies": {
+		"playwright-core": "1.60.0",
+		"zod": "^4.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.4",
+		"@orgsdk/plugins": "0.2.2",
+		"@types/bun": "^1.3.9",
+		"typescript": "~6.0.3"
+	}
+}
