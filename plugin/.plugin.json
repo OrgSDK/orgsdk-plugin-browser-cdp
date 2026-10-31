@@ -1,7 +1,7 @@
 {
 	"$schema": "https://orgsdk.ai/schemas/plugin-manifest.v1.json",
 	"name": "browser-cdp",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Control a remote Chrome browser over CDP with Playwright. Connect to self-hosted Steel, Steel Cloud, or another Chromium CDP endpoint.",
 	"entry": "index.ts",
 	"auth": {
