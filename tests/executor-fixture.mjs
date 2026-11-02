@@ -27,9 +27,58 @@ export default async function createFixture({ temporary }) {
 				? route.continue()
 				: route.abort(),
 		);
-		const [port] = (
-			await readFile(join(profile, "DevToolsActivePort"), "utf8")
-		).split("\n");
+		// Playwright's launch handshake can finish before Chromium writes this file.
+		// Require the complete two-line CDP record, not a numeric prefix mid-write.
+		const portFile = join(profile, "DevToolsActivePort");
+		const deadline = performance.now() + 5_000;
+		let port;
+		while (true) {
+			let contents;
+			try {
+				contents = await readFile(portFile, "utf8");
+			} catch (error) {
+				if (error.code !== "ENOENT") throw error;
+			}
+			const remaining = deadline - performance.now();
+			if (contents !== undefined) {
+				const [portText, browserPath, ...tail] = contents.split("\n");
+				const validPort =
+					/^[1-9]\d{0,4}$/.test(portText) && Number(portText) <= 65_535;
+				const pathShape =
+					"/devtools/browser/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+				const validPath =
+					browserPath === undefined ||
+					(browserPath.length <= pathShape.length &&
+						[...browserPath].every((character, index) =>
+							pathShape[index] === "x"
+								? /^[0-9a-f]$/.test(character)
+								: character === pathShape[index],
+						));
+				const validTail =
+					tail.length === 0 ||
+					(tail.length === 1 &&
+						tail[0] === "" &&
+						browserPath.length === pathShape.length);
+				if (
+					(portText !== "" && !validPort) ||
+					(browserPath !== undefined && !validPort) ||
+					!validPath ||
+					!validTail
+				) {
+					throw new Error(`Malformed DevToolsActivePort at ${portFile}`);
+				}
+				if (browserPath?.length === pathShape.length && remaining > 0) {
+					port = portText;
+					break;
+				}
+			}
+			if (remaining <= 0) {
+				throw new Error(
+					`Timed out after 5000ms waiting for ${portFile} (${contents === undefined ? "missing" : "incomplete or late record"})`,
+				);
+			}
+			await new Promise((done) => setTimeout(done, Math.min(25, remaining)));
+		}
 		const endpoint = `http://127.0.0.1:${port}`;
 		return {
 			provider: "browser-cdp",
@@ -85,7 +134,8 @@ export default async function createFixture({ temporary }) {
 			},
 		};
 	} catch (error) {
-		await context?.close();
+		// A cleanup failure must not hide the startup error or leak the server.
+		await context?.close().catch(() => {});
 		await new Promise((done) => server.close(done));
 		throw error;
 	}
