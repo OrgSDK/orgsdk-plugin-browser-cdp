@@ -108,6 +108,75 @@ remote setting or package state. Consult
 the authorised release. npm publication and catalogue promotion are separate
 operations; the historical `publish:catalog` command remains manual-only.
 
+## One-time GitHub-only identity bootstrap
+
+Prepared **4 November 2026**. This is a separate, default-disabled recovery path
+for the first publication of `@orgsdk/plugin-browser-cdp`, not a replacement for
+the stage-only OIDC release above. Local npm login/trust setup does not authorise
+local artifact uploads: all `npm stage publish` commands run on GitHub.
+
+npm requires an existing package identity before configuring a trusted publisher.
+For a missing package, staging creates the public npm-generated `0.0.0-stage`
+placeholder. The submitted reservation is **`0.0.0-bootstrap.0`**, deliberately
+different from the real release **`0.1.2`**. It contains only package metadata,
+README, Apache licence and NOTICE; no executable plugin, entry points, scripts
+or dependencies. **Never approve or install the reservation.** Its explicit
+`bootstrap-reservation` tag and disabled provenance apply only to that candidate;
+the real release retains OIDC, provenance and human npm 2FA approval.
+
+### Human credential step
+
+After separate bootstrap approval, the operator creates a granular token on the
+npm website using the publishing account:
+
+- Packages/scopes: **Read and write (stage only)**, only the **`@orgsdk` scope**.
+  The not-yet-created individual package cannot be selected. Do not choose all
+  packages or direct publish permission.
+- **Bypass 2FA disabled**, organization-management permission **No access**,
+  shortest permitted expiry (npm requires at least one day).
+- Store it directly as environment secret **`NPM_BOOTSTRAP_TOKEN`** in this
+  repository's protected **`npm-publish`** environment. Never put the value in
+  chat, source, a repository variable, a command argument or a report.
+
+GitHub required-reviewer approval authorises the job to run. It is distinct from
+npm's later human approval of the real release, which requires 2FA.
+
+### Controlled execution and handover
+
+1. Merge and verify the reviewed workflow on `main`. A normal dry run must not
+   run either upload job. Keep `ORGSDK_ENABLE_NPM_PUBLISH=false` during bootstrap.
+2. Only after the credential is ready, separately enable
+   `ORGSDK_ENABLE_NPM_BOOTSTRAP=true` and manually dispatch `publish-npm.yml` on
+   `main` with `dry_run=false`, `bootstrap_identity=true`. Approve the protected
+   GitHub environment for that exact run. The normal OIDC stage job is excluded.
+3. The bootstrap job downloads the exact tarball tested by `verify`. Preparation
+   checks the GitHub context, an anonymous registry 404 and the frozen SHA256
+   `1d8d04203424652271c7f9136364ac5f09c0872900c61e418a5a0ef760a6df78`
+   before creating reservation files from approved 0.1.2 metadata. Existing or
+   unavailable registry responses fail closed; investigate rather than retrying
+   blindly. Only the final staging step receives the temporary secret.
+4. Read back the exact public placeholder and the private staged reservation.
+   **Do not approve it and do not reject the only reservation yet.** If staging
+   fails, inspect its actual result before retrying or changing any permission.
+5. Configure a stage-only trusted publisher for this package, repository
+   `OrgSDK/orgsdk-plugin-browser-cdp`, file `publish-npm.yml`, environment
+   `npm-publish`. Verify the saved binding through npm; do not grant direct
+   publication. This configuration is authentication setup, not an artifact upload.
+6. Disable the bootstrap gate, revoke the temporary npm token and remove its
+   GitHub environment secret. Then enable the normal release gate and dispatch
+   with `dry_run=false`, `bootstrap_identity=false`. Inspect the exact OIDC-staged
+   **0.1.2** artifact and provenance before the operator's npm 2FA approval.
+7. Anonymously verify the real registry version, integrity, provenance and
+   install/consumer path, then verify the trusted publisher again. Only afterward
+   reject the identified bootstrap stage; do not remove the package identity.
+   Website deployment and announcements remain separate gates.
+
+This procedure is prepared implementation, not a successful registry bootstrap
+or OIDC receipt. Primary references: [staged publishing](https://docs.npmjs.com/staged-publishing/),
+[token permissions](https://docs.npmjs.com/creating-and-viewing-access-tokens/),
+[npm trust](https://docs.npmjs.com/cli/v12/commands/npm-trust/) and
+[npm stage](https://docs.npmjs.com/cli/v12/commands/npm-stage/).
+
 ## Packaging compatibility and maintenance
 
 The tracked executor patch fixes dependency-root discovery when export maps use
