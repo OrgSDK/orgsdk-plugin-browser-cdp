@@ -9,6 +9,17 @@ namespace: `browserCdp`.
 The executor only needs this plugin's JavaScript. `playwright-core` is embedded
 in the release; no Chromium installation or Steel SDK is needed on the executor.
 
+## Install in a project
+
+The npm distribution is `@orgsdk/plugin-browser-cdp`. Once a version is
+published, install that exact version and use its `plugin.catalog.json` as an
+OrgSDK release catalogue. Installing npm files alone does not register the
+plugin: add the pinned external release in your project's Plugins page, then
+configure the endpoint and optional credential. The source build emits this
+catalogue at `dist/npm/plugin.catalog.json`. Its versioned npm CDN URL becomes
+available only after publication; the executor verifies the bundle's SHA256.
+Building or testing locally does not publish anything.
+
 ## Configure
 
 Self-hosted Steel (its **CDP WebSocket is on the API port 3000**, not the optional
@@ -53,7 +64,7 @@ session on every call. Session creation, renewal and release are managed
 through Steel itself. This plugin does not invoke Steel's REST API.
 
 For an authenticated CDP proxy, `authMode: "bearer"` sends `secret_apiKey` as
-`Authorization: Bearer ...`. Additional connection headers can be supplied as
+`Authorization: Bearer <secret_apiKey>`. Additional connection headers can be supplied as
 JSON in the encrypted credential's `secret_headers` string:
 
 ```json
@@ -132,7 +143,7 @@ than Playwright's native protocol; browser/server compatibility still matters.
 
 ## Develop and verify
 
-Requires Bun 1.4, GNU tar for source packaging, and independently installed
+Requires Bun 1.4, Node.js 22.22.0+, GNU tar for source packaging, and independently installed
 dependencies. The package command normalizes archive timestamps, ownership and
 permissions so repeated source builds have the same checksum:
 
@@ -146,14 +157,20 @@ bun run package
 bun run version-guard
 ```
 
-`bun run test:integration` starts an isolated Chromium through `playwright-cli`,
-serves a local fixture, exercises all tools over real HTTP and WebSocket CDP,
-and closes only its test browser. It requires `playwright-cli` on PATH and the
-Chromium matching Playwright 1.60.0. Install it into an isolated cache with
-`PLAYWRIGHT_BROWSERS_PATH="$PWD/.browsers" bunx playwright-core install chromium`,
-and use the same `PLAYWRIGHT_BROWSERS_PATH` for the test command.
-No personal browser profile or OrgSDK installation is used. A screenshot is
-saved to `.artifacts/integration.png`.
+The dependency lock pins Playwright and playwright-core to 1.64.1. Source
+integration and extracted npm tests need the matching headless Chromium in an
+isolated cache; deployed executors only need access to an existing remote browser.
+Use `bunx --no-install playwright install chromium` with an explicit
+`PLAYWRIGHT_BROWSERS_PATH` when provisioning a test cache. Source integration also
+requires `playwright-cli` on PATH and saves `.artifacts/integration.png`.
+
+Run `bun run package` before `bun run build:npm`, because source packaging
+recreates `dist/`. Then run `bun run test:executor` and
+`bun run test:registration` with the matching browser-cache environment. These
+tests use disposable profiles, loopback fixture sites and fresh OrgSDK stores,
+not a personal browser or installation. They verify every named operation from
+the extracted npm payload and fresh-project registration; they do not prove
+live Steel Cloud credentials, provider uptime or a public release URL.
 
 ## Build an executable OrgSDK release
 
@@ -195,8 +212,13 @@ To test an executable bundle instead of source, set
 to install the bundle into temporary executor storage and exercise every tool
 through the real OrgSDK loader and `browserCdp` sandbox namespace.
 
-Source artifacts and executable releases stay local;
-this repository has no automatic publish or deployment workflow.
+Source packaging and npm distribution are distinct artifacts. The prepared
+`publish-npm.yml` workflow is gated: publication needs explicit approval, the
+repository's release variable, the protected `npm-publish` environment and npm
+authentication. It publishes only its verified tarball with public access and
+provenance. None of these build/test commands publishes or deploys anything.
 
-Private proprietary source; see `LICENSE`. Playwright is Apache-2.0 and Zod is
-MIT; the executor packaging command includes their installed license notices.
+This plugin is Apache-2.0 licensed; see `LICENSE`, `NOTICE` and `TRADEMARKS.md`.
+Playwright is Apache-2.0 and Zod is MIT. Their dependency notices accompany the
+executable bundle and npm package. This grant does not relicense the remaining
+OrgSDK platform or executor.
