@@ -9,6 +9,10 @@ on:
         description: "Verify and pack without publishing"
         type: boolean
         default: true
+      bootstrap_identity:
+        description: "Reserve missing package identity only; never approve the bootstrap candidate"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -76,6 +80,7 @@ jobs:
     if: >-
       vars.ORGSDK_ENABLE_NPM_PUBLISH == 'true' &&
       github.repository != 'OrgSDK/orgsdk-plugin-template' &&
+      (github.event_name != 'workflow_dispatch' || !inputs.bootstrap_identity) &&
       (github.event_name == 'push' || inputs.dry_run == false)
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -113,3 +118,46 @@ jobs:
             assert.equal(pkg.repository.url, `git+https://github.com/${process.env.GITHUB_REPOSITORY}.git`);
           '
           npm stage publish "$1" --access public --provenance --ignore-scripts
+
+  bootstrap:
+    needs: verify
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      inputs.dry_run == false &&
+      inputs.bootstrap_identity == true &&
+      vars.ORGSDK_ENABLE_NPM_BOOTSTRAP == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm-publish
+    permissions:
+      contents: read
+    env:
+      EXPECTED_NPM_SHA256: 1d8d04203424652271c7f9136364ac5f09c0872900c61e418a5a0ef760a6df78
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Install the reviewed npm CLI
+        run: npm install --global npm@12.0.2 --ignore-scripts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c809a3
+        with:
+          name: verified-npm-${{ github.sha }}
+          path: artifacts
+      - name: Prepare a non-release identity reservation
+        run: |
+          set -- artifacts/*.tgz
+          test "$#" -eq 1
+          node scripts/prepare-npm-bootstrap.mjs "$1" "$RUNNER_TEMP/npm-bootstrap-reservation" "$EXPECTED_NPM_SHA256"
+      - name: Stage identity reservation only - never approve this candidate
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_BOOTSTRAP_TOKEN }}
+        run: |
+          test -n "$NODE_AUTH_TOKEN"
+          npm stage publish "$RUNNER_TEMP/npm-bootstrap-reservation" --access public --tag bootstrap-reservation --provenance=false --ignore-scripts
+          printf '%s\n' 'DO NOT APPROVE the metadata-only bootstrap reservation. Configure OIDC and stage the verified 0.1.2 release separately.'
