@@ -1,6 +1,6 @@
 {
 	"name": "@orgsdk/plugin-browser-cdp",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Remote Chrome automation over CDP, including self-hosted Steel Browser.",
 	"type": "module",
 	"private": true,
@@ -43,7 +43,7 @@
 	"bugs": {
 		"url": "https://github.com/OrgSDK/orgsdk-plugin-browser-cdp/issues"
 	},
-	"homepage": "https://github.com/OrgSDK/orgsdk-plugin-browser-cdp#readme",
+	"homepage": "https://orgsdk.ai/plugins/browser-cdp",
 	"overrides": {
 		"zod": "4.6.7"
 	}

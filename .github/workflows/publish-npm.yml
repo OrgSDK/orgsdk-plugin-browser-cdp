@@ -1,4 +1,4 @@
-name: Prepare or publish public npm package
+name: Prepare or stage public npm package
 
 on:
   push:
@@ -71,7 +71,7 @@ jobs:
           path: artifacts/*.tgz
           if-no-files-found: error
 
-  publish:
+  stage:
     needs: verify
     if: >-
       vars.ORGSDK_ENABLE_NPM_PUBLISH == 'true' &&
@@ -86,17 +86,17 @@ jobs:
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: "22.22.1"
+          node-version: "24"
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Install the reviewed OIDC-capable npm CLI
+        run: npm install --global npm@12.0.2 --ignore-scripts
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c809a3
         with:
           name: verified-npm-${{ github.sha }}
           path: artifacts
-      - name: Publish the verified tarball with public access
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage the verified tarball through the trusted publisher
         run: |
-          test -n "$NODE_AUTH_TOKEN" || { echo '::error::NPM_TOKEN is required for public publishing'; exit 1; }
           set -- artifacts/*.tgz
           test "$#" -eq 1
           tar -xOf "$1" package/package.json | node --input-type=module -e '
@@ -112,4 +112,4 @@ jobs:
             assert.equal(pkg.license, "Apache-2.0");
             assert.equal(pkg.repository.url, `git+https://github.com/${process.env.GITHUB_REPOSITORY}.git`);
           '
-          npm publish "$1" --access public --provenance --ignore-scripts
+          npm stage publish "$1" --access public --provenance --ignore-scripts

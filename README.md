@@ -2,37 +2,35 @@
 
 ## Current npm distribution and execution checks
 
-Updated **31 October 2026**. This public-release candidate uses `@orgsdk/plugins@0.2.2`
+Updated **3 November 2026**. This public-release candidate uses `@orgsdk/plugins@0.2.2`
 and `@orgsdk/executor@0.1.0` (with the tracked packaging compatibility patch).
 `bun run build:npm` creates a public Apache-2.0 npm payload; `bun run test:executor`
 downloads the extracted npm entry into an empty executor store and executes every exported function headlessly.
 `bun run test:registration` verifies fresh-project registration using the npm host.
-See [npm distribution, CI activation and verification](docs/npm-distribution.md)
+See [npm distribution, CI activation and verification](https://github.com/OrgSDK/orgsdk-plugin-browser-cdp/blob/main/docs/npm-distribution.md)
 for prerequisites, commands, fixtures and release settings. Publication remains
 an explicit release operation; source-root `private: true` is retained.
 
 ## Current installation and credential contract
 
-Configure the generated `dist/npm/plugin.catalog.json` as an OrgSDK release
-catalogue, then add its pinned external release to a project. Installing npm files
-alone does not register the plugin. Its package URL addresses the immutable npm
-version through jsDelivr; that URL becomes available only after publication.
-The catalogue retains the bundle's SHA256 digest. No release is published by
-building or testing locally.
+The intended npm package is `@orgsdk/plugin-browser-cdp`. Once a version is
+published, install that exact version and use its `plugin.catalog.json` as an
+OrgSDK release catalogue. The source build produces the same catalogue at
+`dist/npm/plugin.catalog.json`. Add the pinned external release to your project's
+Plugins page; installing npm files alone does not register it. Read the plugin's
+tool contract from the project and call the `browserCdp` namespace in an action.
 
-Native Google, Twitter, LinkedIn and Facebook OAuth connections are owned by the
-OrgSDK host. Plugins receive only `{source: "byo", secret_accessToken}` under
-their provider key. Client and refresh secrets stay on the host. The retired
-first-party relay is unsupported. Generic token providers receive their stored
-secret record. See [the current distribution guide](docs/npm-distribution.md).
+The package URL addresses the immutable npm version through jsDelivr and becomes
+available only after publication. The executor verifies the catalogue's SHA256
+digest before loading the module. Building or testing locally does not publish
+a release. The npm package embeds JavaScript dependencies, not a browser engine.
 
-## Historical author-source and hosted-catalogue reference
+Self-hosted endpoints with `authMode: "none"` require no stored credential.
+For bearer/Steel authentication or custom connection headers, attach a credential
+with provider `browser-cdp` as described below. Secrets stay in that credential,
+not in action arguments or the plain configuration URL.
 
-The material below preserves the original extraction and legacy authoring
-workflows. Its callback/relay, source-archive publication and private-licence
-claims describe the former host. The current npm, authentication and licensing
-contract above supersedes those claims.
-
+## Remote browser connection
 
 A project-owned external OrgSDK plugin for controlling an existing Chromium
 browser through Playwright's Chrome DevTools Protocol connection. Works with
@@ -87,7 +85,7 @@ session on every call. Session creation, renewal and release are managed
 through Steel itself. This plugin does not invoke Steel's REST API.
 
 For an authenticated CDP proxy, `authMode: "bearer"` sends `secret_apiKey` as
-`Authorization: Bearer ...`. Additional connection headers can be supplied as
+`Authorization: Bearer <secret_apiKey>`. Additional connection headers can be supplied as
 JSON in the encrypted credential's `secret_headers` string:
 
 ```json
@@ -166,7 +164,7 @@ than Playwright's native protocol; browser/server compatibility still matters.
 
 ## Develop and verify
 
-Requires Bun 1.4, GNU tar for source packaging, and independently installed
+Requires Bun 1.4, Node.js 22.22.0+, GNU tar for source packaging, and independently installed
 dependencies. The package command normalizes archive timestamps, ownership and
 permissions so repeated source builds have the same checksum:
 
@@ -180,14 +178,20 @@ bun run package
 bun run version-guard
 ```
 
-`bun run test:integration` starts an isolated Chromium through `playwright-cli`,
-serves a local fixture, exercises all tools over real HTTP and WebSocket CDP,
-and closes only its test browser. It requires `playwright-cli` on PATH and the
-Chromium matching Playwright 1.60.0. Install it into an isolated cache with
-`PLAYWRIGHT_BROWSERS_PATH="$PWD/.browsers" bunx playwright-core install chromium`,
-and use the same `PLAYWRIGHT_BROWSERS_PATH` for the test command.
-No personal browser profile or OrgSDK installation is used. A screenshot is
-saved to `.artifacts/integration.png`.
+The dependency lock pins Playwright and playwright-core to 1.64.1. Source
+integration and extracted npm tests need the matching headless Chromium in an
+isolated cache; deployed executors only need access to an existing remote browser.
+Use `bunx --no-install playwright install chromium` with an explicit
+`PLAYWRIGHT_BROWSERS_PATH` when provisioning a test cache. Source integration also
+requires `playwright-cli` on PATH and saves `.artifacts/integration.png`.
+
+Run `bun run package` before `bun run build:npm`, because source packaging
+recreates `dist/`. Then run `bun run test:executor` and
+`bun run test:registration` with the matching browser-cache environment. These
+tests use disposable profiles, loopback fixture sites and fresh OrgSDK stores,
+not a personal browser or installation. They verify every named operation from
+the extracted npm payload and fresh-project registration; they do not prove
+live Steel Cloud credentials, provider uptime or a public release URL.
 
 ## Build an executable OrgSDK release
 
@@ -229,8 +233,13 @@ To test an executable bundle instead of source, set
 to install the bundle into temporary executor storage and exercise every tool
 through the real OrgSDK loader and `browserCdp` sandbox namespace.
 
-Source artifacts and executable releases stay local;
-this repository has no automatic publish or deployment workflow.
+Source packaging and npm distribution are distinct artifacts. The prepared
+`publish-npm.yml` workflow is gated: publication needs explicit approval, the
+repository's release variable, the protected `npm-publish` environment and npm
+authentication. It publishes only its verified tarball with public access and
+provenance. None of these build/test commands publishes or deploys anything.
 
-Private proprietary source; see `LICENSE`. Playwright is Apache-2.0 and Zod is
-MIT; the executor packaging command includes their installed license notices.
+This plugin is Apache-2.0 licensed; see `LICENSE`, `NOTICE` and `TRADEMARKS.md`.
+Playwright is Apache-2.0 and Zod is MIT. Their dependency notices accompany the
+executable bundle and npm package. This grant does not relicense the remaining
+OrgSDK platform or executor.

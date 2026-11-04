@@ -75,26 +75,35 @@ Retain the exact tested tarball with:
 NPM_TEST_ARTIFACT_DIR=artifacts bun run test:executor
 ```
 
-## Release workflow, prepared but disabled
+## Reviewed staged release workflow
 
 CI checks author source, dependencies, npm execution and fresh registration.
 `publish-npm.yml` verifies matching versions on a `v<version>` tag contained in
 `main`, or a manual `main` run defaulting to dry run. It retains the tested npm
-tarball and publishes those bytes only. Publication requires all of:
+tarball and submits only those bytes to npm staging. Publication requires all of:
 
 - Separate publication authority and a public GitHub repository matching the
   generated package's repository metadata. Local-only repositories still need
   their own independently owned remote and initial source publication.
-- A protected `npm-publish` environment with maintainer review, scoped npm write
-  credentials in `NPM_TOKEN`, and npm policy allowing CI publication.
+- A protected `npm-publish` environment with maintainer review and a stage-only
+  npm trusted publisher bound to `OrgSDK/orgsdk-plugin-browser-cdp`, workflow
+  `publish-npm.yml`, environment `npm-publish`. Direct automated publication and
+  dist-tag management are not required. No long-lived `NPM_TOKEN` is used.
 - Explicit repository variable `ORGSDK_ENABLE_NPM_PUBLISH=true` and a release tag
   or a manual run with `dry_run=false`.
 
-The job uses `--access public --provenance`, grants `id-token: write` only to the
-publish job, and checks Apache/public metadata and the exact GitHub identity.
+The stage job uses Node 24 and pinned npm 12.0.2, runs
+`npm stage publish --access public --provenance`, grants `id-token: write` only
+to that job, and checks Apache/public metadata and the exact GitHub identity.
+The npm maintainer must inspect and approve the exact staged version through
+npm's interactive 2FA flow before it is installable. A successful stage is not
+publication. The first package bootstrap creates publicly visible placeholder
+metadata; it also requires explicit release authority. Retain the bootstrap
+reservation until the real version and trusted publisher are verified.
+
 Template repositories/packages remain blocked until renamed. Do not enable any
-release gate as part of local preparation. No remote, registry token, repository
-visibility, environment or release setting is changed by these files. Consult
+release gate as part of local preparation. The workflow file alone changes no
+remote setting or package state. Consult
 [npm provenance](https://docs.npmjs.com/generating-provenance-statements/) before
 the authorised release. npm publication and catalogue promotion are separate
 operations; the historical `publish:catalog` command remains manual-only.
@@ -112,9 +121,12 @@ from executor 0.1.0 into these plugin distributions, as recorded in `NOTICE`.
 That permission does not relicense the rest of the executor/platform. Third-party
 licences remain intact. The published executor is used as development tooling.
 
-Canonical scripts, patch, workflows and this guide live in
+Canonical scripts, patch and baseline workflows live in
 `OrgSDK/plugins/scripts/plugin-ci-templates/`. Each plugin retains independent
-copies and its own fixture, so no sibling repository is needed in CI:
+copies and its own fixture, so no sibling repository is needed in CI. This
+plugin's `publish-npm.yml` deliberately uses the reviewed stage-only OIDC path
+above instead of the baseline token publisher; do not overwrite that release
+policy with an unreviewed template sync:
 
 ```sh
 node scripts/sync-plugin-ci.mjs --root=..
