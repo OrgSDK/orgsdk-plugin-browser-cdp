@@ -1,29 +1,48 @@
 # OrgSDK Browser CDP
 
-## Current npm distribution and execution checks
+## Public catalogue release
 
-Updated **3 November 2026**. This public-release candidate uses `@orgsdk/plugins@0.2.2`
+Updated **7 November 2026**. Browser CDP **0.1.2** is available from the
+[OrgSDK plugin catalogue](https://orgsdk.ai/plugins/browser-cdp). Enable the pinned
+external release in your project's Plugins page and configure an existing browser
+endpoint. The default [release feed](https://orgsdk.ai/plugins/releases.json)
+provides the immutable bundle URL and SHA256 checksum; OrgSDK verifies the bytes
+before loading them. The public bundle includes `playwright-core` and does not
+require an npm plugin package or a browser engine on the executor.
+
+The separately planned `@orgsdk/plugin-browser-cdp` npm package remains unpublished.
+Use the public catalogue for installation. Source-root `private: true` protects
+development files and does not disable the catalogue release.
+
+OrgSDK host 0.1.0 can interrupt cold plugin loads and long operations because of
+an executor heartbeat defect. The host correction is tracked in
+[OrgSDK #16](https://github.com/OrgSDK/OrgSDK/pull/16); use a host containing that
+fix for the complete CDP execution path.
+
+## npm artifact preparation and execution checks
+
+The npm release candidate uses `@orgsdk/plugins@0.2.2`
 and `@orgsdk/executor@0.1.0` (with the tracked packaging compatibility patch).
 `bun run build:npm` creates a public Apache-2.0 npm payload; `bun run test:executor`
 downloads the extracted npm entry into an empty executor store and executes every exported function headlessly.
 `bun run test:registration` verifies fresh-project registration using the npm host.
 See [npm distribution, CI activation and verification](https://github.com/OrgSDK/orgsdk-plugin-browser-cdp/blob/main/docs/npm-distribution.md)
-for prerequisites, commands, fixtures and release settings. Publication remains
-an explicit release operation; source-root `private: true` is retained.
+for prerequisites, commands, fixtures and release settings. npm publication remains
+a separate release operation.
 
 ## Current installation and credential contract
 
-The intended npm package is `@orgsdk/plugin-browser-cdp`. Once a version is
+For a future npm distribution, once a version of `@orgsdk/plugin-browser-cdp` is
 published, install that exact version and use its `plugin.catalog.json` as an
 OrgSDK release catalogue. The source build produces the same catalogue at
 `dist/npm/plugin.catalog.json`. Add the pinned external release to your project's
 Plugins page; installing npm files alone does not register it. Read the plugin's
 tool contract from the project and call the `browserCdp` namespace in an action.
 
-The package URL addresses the immutable npm version through jsDelivr and becomes
+The generated npm catalogue's package URL addresses the immutable npm version through jsDelivr and becomes
 available only after publication. The executor verifies the catalogue's SHA256
 digest before loading the module. Building or testing locally does not publish
-a release. The npm package embeds JavaScript dependencies, not a browser engine.
+a release. These npm candidate URLs are separate from the live website bundle URLs.
 
 Self-hosted endpoints with `authMode: "none"` require no stored credential.
 For bearer/Steel authentication or custom connection headers, attach a credential
