@@ -57,7 +57,7 @@ test("identity bootstrap is a separately gated protected manual job", async () =
 	]) {
 		expect(bootstrap.if).toContain(guard);
 	}
-	expect(workflow.jobs.stage.if).toContain("!inputs.bootstrap_identity");
+	expect(workflow.jobs.publish.if).toContain("!inputs.bootstrap_identity");
 	const tokenSteps = bootstrap.steps.filter(
 		(step) => step.env?.NODE_AUTH_TOKEN,
 	);
@@ -69,9 +69,9 @@ test("identity bootstrap is a separately gated protected manual job", async () =
 	expect(tokenSteps[0].run).toContain("--provenance=false");
 	expect(tokenSteps[0].run).toContain("--ignore-scripts");
 	expect(tokenSteps[0].run).toContain("--tag bootstrap-reservation");
-	const stageText = JSON.stringify(workflow.jobs.stage);
-	expect(stageText).not.toContain("NPM_BOOTSTRAP_TOKEN");
-	expect(stageText).toContain("--provenance");
+	const publishText = JSON.stringify(workflow.jobs.publish);
+	expect(publishText).not.toContain("NPM_BOOTSTRAP_TOKEN");
+	expect(publishText).toContain("--provenance");
 	expect(JSON.stringify(bootstrap)).not.toMatch(/npm publish\b/);
 });
 
