@@ -1,4 +1,4 @@
-name: Prepare or stage public npm package
+name: Prepare or publish public npm package
 
 on:
   push:
@@ -75,7 +75,7 @@ jobs:
           path: artifacts/*.tgz
           if-no-files-found: error
 
-  stage:
+  publish:
     needs: verify
     if: >-
       vars.ORGSDK_ENABLE_NPM_PUBLISH == 'true' &&
@@ -100,7 +100,7 @@ jobs:
         with:
           name: verified-npm-${{ github.sha }}
           path: artifacts
-      - name: Stage the verified tarball through the trusted publisher
+      - name: Publish the verified tarball through the trusted publisher
         run: |
           set -- artifacts/*.tgz
           test "$#" -eq 1
@@ -117,7 +117,7 @@ jobs:
             assert.equal(pkg.license, "Apache-2.0");
             assert.equal(pkg.repository.url, `git+https://github.com/${process.env.GITHUB_REPOSITORY}.git`);
           '
-          npm stage publish "$1" --access public --provenance --ignore-scripts
+          npm publish "$1" --access public --provenance --ignore-scripts
 
   bootstrap:
     needs: verify
