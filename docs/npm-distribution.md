@@ -129,7 +129,7 @@ References: [trusted publishing](https://docs.npmjs.com/trusted-publishers/),
 [staged publishing](https://docs.npmjs.com/staged-publishing/).
 
 Browser CDP retains its narrower bootstrap guard: the verified 0.1.2 archive
-must have SHA256 `1d8d04203424652271c7f9136364ac5f09c0872900c61e418a5a0ef760a6df78`.
+must have SHA256 `fcca746efb1d5aabc76550dc9b4f8a7512b1447c38841a18521b852eb78e81cd`.
 Its bootstrap script also checks the exact GitHub repository/job context.
 If that artifact changes, review and update the bootstrap guard before dispatch.
 
