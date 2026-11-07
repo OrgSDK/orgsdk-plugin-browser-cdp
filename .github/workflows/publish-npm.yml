@@ -102,7 +102,7 @@ jobs:
           path: artifacts
       - name: Publish the verified tarball through the trusted publisher
         run: |
-          set -- artifacts/*.tgz
+          set -- ./artifacts/*.tgz
           test "$#" -eq 1
           tar -xOf "$1" package/package.json | node --input-type=module -e '
             import assert from "node:assert/strict";
@@ -151,7 +151,7 @@ jobs:
           path: artifacts
       - name: Prepare a non-release identity reservation
         run: |
-          set -- artifacts/*.tgz
+          set -- ./artifacts/*.tgz
           test "$#" -eq 1
           node scripts/prepare-npm-bootstrap.mjs "$1" "$RUNNER_TEMP/npm-bootstrap-reservation" "$EXPECTED_NPM_SHA256"
       - name: Stage identity reservation only - never approve this candidate
