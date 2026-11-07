@@ -83,7 +83,7 @@ test("bootstrap preparation is pinned to the approved tested release archive", a
 		),
 	) as Workflow;
 	expect(workflow.jobs.bootstrap.env?.EXPECTED_NPM_SHA256).toBe(
-		"1d8d04203424652271c7f9136364ac5f09c0872900c61e418a5a0ef760a6df78",
+		"fcca746efb1d5aabc76550dc9b4f8a7512b1447c38841a18521b852eb78e81cd",
 	);
 	const preparation = workflow.jobs.bootstrap.steps.find((step) =>
 		step.run?.includes("node scripts/prepare-npm-bootstrap.mjs"),
