@@ -1,14 +1,19 @@
 # OrgSDK Browser CDP
 
+Control a remote Chrome browser over CDP.
+
+Version 0.1.3 adds support for enabling the plugin before entering a browser
+endpoint. After enabling it, enter `cdpEndpoint` in **Configuration (JSON)** on
+the project's **Plugins** page and select **Save plugin** before running an action.
+
 ## Public catalogue release
 
-Updated **7 November 2026**. Browser CDP **0.1.2** is available from the
-[OrgSDK plugin catalogue](https://orgsdk.ai/plugins/browser-cdp). Enable the pinned
-external release in your project's Plugins page and configure an existing browser
-endpoint. The default [release feed](https://orgsdk.ai/plugins/releases.json)
-provides the immutable bundle URL and SHA256 checksum; OrgSDK verifies the bytes
-before loading them. The public bundle includes `playwright-core` and does not
-require an npm plugin package or a browser engine on the executor.
+Browser CDP **0.1.2** requires `cdpEndpoint` during registration, which prevents
+the project's **Enable plugin** button from installing that version. The
+[OrgSDK plugin catalogue](https://orgsdk.ai/plugins/browser-cdp) lists available
+releases. Its [release feed](https://orgsdk.ai/plugins/releases.json) provides
+the versioned bundle URL and SHA256 checksum. OrgSDK verifies the bytes before
+loading them. The bundle includes `playwright-core`.
 
 The separately planned `@orgsdk/plugin-browser-cdp` npm package remains unpublished.
 Use the public catalogue for installation. Source-root `private: true` protects
@@ -49,7 +54,7 @@ For bearer/Steel authentication or custom connection headers, attach a credentia
 with provider `browser-cdp` as described below. Secrets stay in that credential,
 not in action arguments or the plain configuration URL.
 
-## Remote browser connection
+## Compatible platforms
 
 A project-owned external OrgSDK plugin for controlling an existing Chromium
 browser through Playwright's Chrome DevTools Protocol connection. Works with

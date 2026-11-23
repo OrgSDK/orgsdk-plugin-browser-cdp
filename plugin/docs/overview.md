@@ -1,15 +1,15 @@
 # OrgSDK Browser CDP
 
-A project-owned external OrgSDK plugin for controlling an existing Chromium
-browser through Playwright's Chrome DevTools Protocol connection. Works with
-self-hosted [Steel Browser](https://github.com/steel-dev/steel-browser), Steel
-Cloud, and Chrome's remote debugging endpoint. Slug: `browser-cdp`; OrgSDK
-namespace: `browserCdp`.
+Control a remote Chrome browser over CDP.
 
 The executor only needs this plugin's JavaScript. `playwright-core` is embedded
 in the release; no Chromium installation or Steel SDK is needed on the executor.
 
 ## Install in a project
+
+On the project's **Plugins** page, select **Enable plugin** for Browser CDP.
+In **Configuration (JSON)**, enter the `cdpEndpoint` of your browser and select
+**Save plugin**. Browser actions use that endpoint on their next call.
 
 The npm distribution is `@orgsdk/plugin-browser-cdp`. Once a version is
 published, install that exact version and use its `plugin.catalog.json` as an
@@ -20,10 +20,15 @@ catalogue at `dist/npm/plugin.catalog.json`. Its versioned npm CDN URL becomes
 available only after publication; the executor verifies the bundle's SHA256.
 Building or testing locally does not publish anything.
 
+## Compatible platforms
+
+- **Chrome or Chromium** with remote debugging enabled. Use the HTTP discovery address or the browser WebSocket URL.
+- **Self-hosted Steel Browser** using its CDP WebSocket on the API port.
+- **Steel Cloud** using an existing session ID and a stored API key.
+
 ## Configure
 
-Self-hosted Steel (its **CDP WebSocket is on the API port 3000**, not the optional
-console debugger port 9223):
+For self-hosted Steel, use the CDP WebSocket on API port 3000:
 
 ```json
 {

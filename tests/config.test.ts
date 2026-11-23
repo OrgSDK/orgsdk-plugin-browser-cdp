@@ -17,9 +17,9 @@ describe("CDP connection configuration", () => {
 		});
 	}
 
-	test("requires a supported endpoint and bounded timeouts", () => {
+	test("rejects unsupported endpoints and out-of-range timeouts", () => {
 		for (const value of [
-			{},
+			{ cdpEndpoint: "" },
 			{ cdpEndpoint: "file:///tmp/chrome" },
 			{ cdpEndpoint: "ws://steel:3000", actionTimeoutMs: 0 },
 			{ cdpEndpoint: "ws://steel:3000", connectTimeoutMs: 120_001 },
@@ -107,9 +107,10 @@ describe("CDP connection configuration", () => {
 		).toBe("existing");
 	});
 
-	test("exports a serializable schema for OrgSDK configuration forms", () => {
-		const schema = z.toJSONSchema(configSchema);
-		expect(schema.required).toEqual(["cdpEndpoint"]);
+	test("accepts the empty configuration sent by Enable plugin", () => {
+		expect(configSchema.safeParse({}).success).toBe(true);
+		const schema = z.toJSONSchema(configSchema, { io: "input" });
+		expect(schema.required ?? []).toEqual([]);
 		expect(schema.additionalProperties).toBe(false);
 	});
 });

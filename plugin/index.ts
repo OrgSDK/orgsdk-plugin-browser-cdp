@@ -7,7 +7,7 @@ const createPlugin: PluginFactory = (context: PluginContext) => ({
 	config: {
 		title: "Remote browser (CDP)",
 		description:
-			"Connect to an existing Chromium browser or Steel session. Authentication secrets belong in a browser-cdp credential.",
+			"Set the browser endpoint before running an action. Store connection secrets in a browser-cdp credential.",
 		schema: configSchema,
 	},
 });

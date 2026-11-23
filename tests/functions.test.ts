@@ -13,6 +13,18 @@ test("factory inspection needs neither configuration nor a browser", async () =>
 	expect(module.onLoad).toBeUndefined();
 });
 
+test("guides an unconfigured project to setup before connecting", async () => {
+	const connect = mock(async () => {
+		throw new Error("Unexpected connection");
+	});
+	const tools = createFunctions(testContext({}).stores.config, connect);
+	const listPages = tools.find((tool) => tool.name === "listPages");
+	await expect(listPages?.handler({}, {})).rejects.toThrow(
+		"Set cdpEndpoint in the Browser CDP plugin configuration",
+	);
+	expect(connect).not.toHaveBeenCalled();
+});
+
 test("rejects unknown arguments, invalid URLs and missing IDs before any connection", async () => {
 	const connect = mock(async () => {
 		throw new Error("must not connect");

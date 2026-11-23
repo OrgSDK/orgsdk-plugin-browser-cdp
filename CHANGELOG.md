@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3 (unreleased)
+
+- Enable Browser CDP from the project marketplace before configuring a browser endpoint.
+- Show supported browsers and services in the setup documentation.
+
 ## 0.1.2 (unreleased)
 
 - Correct npm consumer installation, connection credentials and release workflow instructions.

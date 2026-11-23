@@ -1,14 +1,14 @@
 {
 	"$schema": "https://orgsdk.ai/schemas/plugin-manifest.v1.json",
 	"name": "browser-cdp",
-	"version": "0.1.2",
-	"description": "Control a remote Chrome browser over CDP with Playwright. Connect to self-hosted Steel, Steel Cloud, or another Chromium CDP endpoint.",
+	"version": "0.1.3",
+	"description": "Control a remote Chrome browser over CDP.",
 	"entry": "index.ts",
 	"auth": {
 		"type": "token",
 		"provider": "browser-cdp",
 		"label": "Browser connection credentials (optional)",
-		"hint": "For Steel Cloud or bearer authentication, attach a credential with secret_apiKey. Self-hosted Steel can use authMode none without a credential. Optional secret_headers contains JSON connection headers."
+		"hint": "Set cdpEndpoint in Configuration before running browser actions. Attach a browser-cdp credential if the endpoint requires authentication."
 	},
 	"marketplace": {
 		"displayName": "Browser CDP",
@@ -23,7 +23,7 @@
 		"permissionsSummary": "Controls pages in the connected browser's default context, including navigation, form submission, page JavaScript, screenshots and closing selected tabs. Uses that session's cookies and network access. Does not launch or terminate the browser.",
 		"links": {
 			"homepage": "https://orgsdk.ai",
-			"docs": "https://github.com/steel-dev/steel-browser"
+			"docs": "https://orgsdk.ai/plugins/browser-cdp#browser-setup"
 		}
 	}
 }

@@ -3,8 +3,9 @@ import { z } from "zod";
 export const configSchema = z.strictObject({
 	cdpEndpoint: z
 		.url({ protocol: /^https?$|^wss?$/ })
+		.optional()
 		.describe(
-			"Chrome CDP HTTP or WebSocket endpoint. Self-hosted Steel: ws://steel:3000; Chrome: http://chrome:9222; Steel Cloud: wss://connect.steel.dev.",
+			"HTTP or WebSocket address of the remote browser. Required before running browser actions.",
 		),
 	authMode: z
 		.enum(["none", "bearer", "steel"])
@@ -38,8 +39,14 @@ export const configSchema = z.strictObject({
 
 export function parseConfig(input: unknown) {
 	const config = configSchema.parse(input);
+	if (!config.cdpEndpoint) {
+		throw new Error(
+			"Set cdpEndpoint in the Browser CDP plugin configuration before running browser actions.",
+		);
+	}
 	return {
 		...config,
+		cdpEndpoint: config.cdpEndpoint,
 		authMode: config.authMode ?? "none",
 		connectTimeoutMs: config.connectTimeoutMs ?? 15_000,
 		actionTimeoutMs: config.actionTimeoutMs ?? 10_000,
